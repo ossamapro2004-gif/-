@@ -167,6 +167,31 @@ body {
     margin-top: 2rem;
 }
 
+/* Simulations Grid Layout */
+.sim-grid {
+    flex-wrap: wrap; /* Override nowrap for multi-row grids */
+    row-gap: 3rem; /* maintain vertical spacing */
+}
+
+.sim-card {
+    flex: 0 0 300px; /* Specific sizing for dense simulation layout */
+    width: 300px;
+    max-width: 300px;
+    min-height: 320px; 
+    padding: 2.5rem 2rem;
+}
+
+.sim-card h3 {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    margin-bottom: 1.5rem;
+}
+
+.sim-card .btn-explore {
+    padding: 0.6rem 1.4rem;
+    font-size: 0.9rem;
+}
+
 .glass-card {
     background: var(--card-bg);
     border: 1px solid var(--card-border); /* VERY fine border */
