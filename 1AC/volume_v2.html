@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCSim – Mesure du Volume V2</title>
+    <!-- Dark Mode Init -->
+    <script>if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* -------------------------------------------------------------
+           DESIGN TOKENS - CLEAN & MODERN LAB (From Scratch)
+        ------------------------------------------------------------- */
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-panel: #ffffff;
+            --bg-lab: radial-gradient(circle at 50% 50%, #f8fafc, #e2e8f0);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --glass: rgba(255, 255, 255, 0.7);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-lab: radial-gradient(circle at 50% 50%, #1e293b, #0f172a);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --glass: rgba(30, 41, 59, 0.7);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background: var(--bg-body); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* NAVBAR (Preserved visual identity) */
+        .navbar {
+            height: 60px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+        .navbar .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); display: flex; align-items: center; gap: 8px; text-decoration: none; }
+        .nav-actions { display: flex; gap: 10px; }
+        .btn-theme { background: transparent; border: 1px solid var(--border); color: var(--text-main); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* APP LAYOUT */
+        .app-layout {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+        }
+
+        /* PANELS */
+        .panel {
+            width: 320px;
+            background: var(--bg-panel);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            position: relative;
+            z-index: 10;
+        }
+        .panel.right { border-right: none; border-left: 1px solid var(--border); }
+        .panel h2 { font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin-bottom: 15px; border-bottom: 2px solid var(--border); padding-bottom: 5px; }
+
+        /* LAB AREA (Canvas) */
+        .lab-area {
+            flex: 1;
+            background: var(--bg-lab);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.05);
+        }
+        canvas { display: block; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15)); }
+
+        /* DRAGGABLE OBJECTS */
+        .objects-grid { display: flex; flex-direction: column; gap: 12px; }
+        .obj-card {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .obj-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
+        .obj-card:active { cursor: grabbing; transform: scale(0.98); }
+        .obj-icon { font-size: 2rem; }
+        .obj-info { flex: 1; }
+        .obj-name { font-weight: 600; font-size: 0.95rem; }
+        .obj-specs { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+        .obj-card.in-lab { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
+
+        /* SETTINGS & CONTROLS */
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 5px; color: var(--text-muted); }
+        select, input[type="number"] { width: 100%; padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-body); color: var(--text-main); font-family: var(--font-main); font-size: 0.95rem; outline: none; }
+        select:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        input[type="range"] { width: 100%; margin-top: 5px; accent-color: var(--primary); }
+        
+        .btn { width: 100%; padding: 12px; border-radius: var(--radius-md); border: none; font-weight: 600; font-family: var(--font-main); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--bg-body); }
+        
+        /* TABS (Modes) */
+        .tabs { display: flex; gap: 5px; background: var(--bg-body); padding: 5px; border-radius: var(--radius-md); margin-bottom: 20px; }
+        .tab-btn { flex: 1; background: transparent; border: none; padding: 8px; font-weight: 600; font-family: var(--font-main); color: var(--text-muted); border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .tab-btn.active { background: var(--bg-panel); color: var(--primary); box-shadow: var(--shadow-sm); }
+
+        /* MODE CONTENT */
+        .mode-section { display: none; flex-direction: column; gap: 15px; }
+        .mode-section.active { display: flex; animation: fadeIn 0.3s ease; }
+        
+        /* Guided Mode Display */
+        .guided-step { background: var(--bg-body); border-left: 3px solid var(--primary); padding: 12px; border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+        .guided-value { font-family: var(--font-mono); font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+        .formula-box { background: var(--bg-body); padding: 15px; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.9rem; text-align: center; border: 1px dashed var(--border); }
+        .formula-box.highlight { background: rgba(16, 185, 129, 0.1); border-color: var(--success); color: var(--success); font-size: 1.1rem; }
+
+        /* Exercise Mode Output */
+        .feedback-box { padding: 15px; border-radius: var(--radius-md); font-size: 0.9rem; font-weight: 500; display: none; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .feedback-box.success { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success); display: block; }
+        .feedback-box.error { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); display: block; }
+        .feedback-box.hidden { display: none; }
+
+        /* DRAG GHOST */
+        #drag-ghost { position: fixed; pointer-events: none; z-index: 9999; font-size: 3rem; transform: translate(-50%, -50%); opacity: 0.9; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3)); display: none; }
+
+        /* Drop overlay */
+        .drop-overlay { position: absolute; inset: 0; pointer-events: none; border: 4px dashed var(--primary); border-radius: 20px; margin: 20px; opacity: 0; background: rgba(59, 130, 246, 0.05); transition: opacity 0.2s; z-index: 5; }
+        .drop-overlay.active { opacity: 1; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M9 3v8.5"/><path d="M15 3v8.5"/><path d="M9 11.5L6 20h12l-3-8.5"/><path d="M6 16h12"/></svg>
+            PCSim
+        </div>
+        <div class="nav-actions">
+            <button id="btn-theme" class="btn-theme" title="Changer le thème">🌙</button>
+        </div>
+    </nav>
+
+    <!-- UI LAYER (HTML) -->
+    <div class="app-layout">
+        
+        <!-- === LEFT PANEL (Library & Environment) === -->
+        <aside class="panel left">
+            <h2>Objets à Immerger</h2>
+            <div class="objects-grid" id="objects-palette">
+                <!-- Objects dynamically generated here -->
+            </div>
+
+            <h2 style="margin-top:20px;">Paramètres de l'Éprouvette</h2>
+            
+            <div class="control-group">
+                <label>Précision des Graduations</label>
+                <select id="grad-precision">
+                    <option value="1">Tous les 1 mL</option>
+                    <option value="2">Tous les 2 mL</option>
+                    <option value="5" selected>Tous les 5 mL</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="water-control-group">
+                <label>Niveau d'eau initial (mL)</label>
+                <input type="range" id="water-slider" min="20" max="80" value="50" step="5">
+                <div style="text-align:center; font-family:var(--font-mono); font-weight:600; margin-top:5px;" id="water-slider-val">50 mL</div>
+            </div>
+
+            <button class="btn btn-outline" id="btn-reset">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Vider & Réinitialiser
+            </button>
+        </aside>
+
+        <!-- === CENTER LAB (Rendering) === -->
+        <main class="lab-area" id="lab-area">
+            <div class="drop-overlay" id="drop-overlay"></div>
+            <canvas id="sim-canvas"></canvas>
+            <div id="drag-ghost">🪨</div>
+        </main>
+
+        <!-- === RIGHT PANEL (Pedagogy) === -->
+        <aside class="panel right">
+            <div class="tabs">
+                <button class="tab-btn active" data-target="guide">Mode Guidé</button>
+                <button class="tab-btn" data-target="exercice">Mode Exercice</button>
+            </div>
+
+            <!-- MODE GUIDÉ (Auto calculation) -->
+            <div id="guide-mode" class="mode-section active">
+                <h2>Mesures Interactives</h2>
+                
+                <div class="guided-step">
+                    <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Volume Initial (V1)</div>
+                    <div class="guided-value"><span id="g-v1">50</span> mL</div>
+                </div>
+
+                <div class="guided-step">
+                    <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Volume Final (V2)</div>
+                    <div class="guided-value"><span id="g-v2">--</span> <span style="font-size:0.9rem">mL</span></div>
+                </div>
+
+                <div class="formula-box" id="g-formula">
+                    <div style="margin-bottom:8px; font-weight:700;">Volume de l'objet (V)</div>
+                    V = V2 - V1<br>
+                    V = <span id="g-calc-v2">--</span> - <span id="g-calc-v1">--</span><br>
+                    <strong style="font-size:1.4rem; color:var(--primary); margin-top:5px; display:inline-block;">V = <span id="g-vobj">--</span> mL</strong>
+                </div>
+            </div>
+
+            <!-- MODE EXERCICE (Manual input & Testing) -->
+            <div id="exercice-mode" class="mode-section">
+                <h2>Exercice Pratique</h2>
+                <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">Lisez attentivement le ménisque. Plongez l'objet et déterminez son volume par vous-même.</p>
+                
+                <button class="btn btn-outline" id="btn-new-exercise" style="margin-bottom:10px;">Générer un Nouveau Cas</button>
+
+                <div class="control-group">
+                    <label>Volume Initial lu (V1) en mL :</label>
+                    <input type="number" id="ex-v1" placeholder="Ex: 40">
+                </div>
+                
+                <div class="control-group">
+                    <label>Volume Final lu (V2) en mL :</label>
+                    <input type="number" id="ex-v2" placeholder="Ex: 55">
+                </div>
+
+                <div class="control-group">
+                    <label>Volume de l'Objet (V) calculé :</label>
+                    <input type="number" id="ex-vobj" placeholder="V = V2 - V1">
+                </div>
+
+                <button class="btn btn-primary" id="btn-verify">Vérifier mes réponses</button>
+                
+                <div id="ex-feedback" class="feedback-box hidden"></div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- MAIN SIMULATION LOGIC (OOP ARCHITECTURE) -->
+    <script>
+        /*******************************************************************************
+         * CORE ARCHITECTURE: OOP DESIGN FOR THE PHYSICS SIMULATION
+         *******************************************************************************/
+
+        /**
+         * Represents an interactive object that can be dropped into the cylinder.
+         */
+        class SimObject {
+            constructor(id, name, emoji, density, volume, color) {
+                this.id = id;
+                this.name = name;
+                this.emoji = emoji;
+                this.density = density; // kg/m^3
+                this.volume = volume;   // mL
+                this.color = color;
+                
+                // Physics State in Lab
+                this.x = 0;
+                this.y = 0;
+                this.vx = 0;
+                this.vy = 0;
+                this.radius = Math.max(15, Math.pow(this.volume, 1/3) * 8); // Visual size mapping
+                this.rotation = 0;
+                this.state = 'inventory'; // 'inventory', 'falling', 'sunk', 'floating'
+                this.isDragging = false;
+            }
+
+            // Determines if the object floats in water (density < 1000)
+            floats() { return this.density < 1000; }
+            
+            // Submerged fraction (used for displacement calculation)
+            getSubmergedFraction() { return this.floats() ? this.density / 1000 : 1; }
+        }
+
+        /**
+         * Represents the Graduated Cylinder and Water fluid dynamics.
+         */
+        class CylinderFluidSystem {
+            constructor() {
+                // Dimensions (Updated dynamically on canvas resize)
+                this.x = 0; this.y = 0; this.w = 0; this.h = 0;
+                this.maxVol = 100; // 100 mL max graduation
+                
+                // State
+                this.targetVolume = 50;
+                this.currentAnimatedVolume = 50;
+                this.graduationStep = 5; // Configurable
+                
+                // Ripple System (Fluid Dynamics)
+                this.ripples = [];
+                this.wavePhase = 0;
+                this.splashIntensity = 0;
+            }
+
+            setTargetVolume(v) { this.targetVolume = v; }
+            getWaterY() { return this.y + this.h - (this.currentAnimatedVolume / this.maxVol) * this.h; }
+            
+            addRipple(x, intensity) {
+                this.ripples.push({ x, radius: 0, intensity, alpha: 1, speed: 2 + intensity });
+                this.splashIntensity = intensity;
+            }
+
+            update(dt) {
+                // Inertia / fluid animation towards target volume
+                const diff = this.targetVolume - this.currentAnimatedVolume;
+                this.currentAnimatedVolume += diff * 0.1; // Smooth dampening
+                
+                // Update waves
+                this.wavePhase += 0.05;
+                if (this.splashIntensity > 0) this.splashIntensity *= 0.95;
+
+                // Update ripples
+                for (let i = this.ripples.length - 1; i >= 0; i--) {
+                    let r = this.ripples[i];
+                    r.radius += r.speed;
+                    r.alpha -= 0.02;
+                    if (r.alpha <= 0) this.ripples.splice(i, 1);
+                }
+            }
+
+            draw(ctx, themeDark) {
+                const waterY = this.getWaterY();
+                const floorY = this.y + this.h;
+                
+                // 1. Draw Water Back
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(this.x, waterY);
+                ctx.lineTo(this.x + this.w, waterY);
+                ctx.lineTo(this.x + this.w, floorY);
+                ctx.lineTo(this.x, floorY);
+                ctx.closePath();
+                const wg = ctx.createLinearGradient(this.x, waterY, this.x, floorY);
+                if (themeDark) {
+                    wg.addColorStop(0, 'rgba(56, 189, 248, 0.6)');
+                    wg.addColorStop(1, 'rgba(14, 165, 233, 0.9)');
+                } else {
+                    wg.addColorStop(0, 'rgba(186, 230, 253, 0.7)');
+                    wg.addColorStop(1, 'rgba(56, 189, 248, 0.8)');
+                }
+                ctx.fillStyle = wg;
+                ctx.fill();
+
+                // Advanced Meniscus & Waves (Fluid rendering)
+                ctx.beginPath();
+                let waveAmp = this.splashIntensity * 3;
+                let edgeRise = 5; // Meniscus concave edge
+                
+                ctx.moveTo(this.x, waterY - edgeRise);
+                // Draw curve across width
+                for (let px = this.x; px <= this.x + this.w; px += 2) {
+                    let normX = (px - this.x) / this.w;
+                    // Meniscus curve (parabola)
+                    let meniscusOffset = 4 * edgeRise * Math.pow(normX - 0.5, 2) - edgeRise;
+                    // Wave noise
+                    let noise = Math.sin(this.wavePhase + px * 0.05) * waveAmp;
+                    ctx.lineTo(px, waterY + meniscusOffset + noise);
+                }
+                ctx.lineTo(this.x + this.w, floorY);
+                ctx.lineTo(this.x, floorY);
+                ctx.fillStyle = themeDark ? 'rgba(56, 189, 248, 0.4)' : 'rgba(56, 189, 248, 0.5)';
+                ctx.fill();
+
+                // Surface Highlight line
+                ctx.beginPath();
+                ctx.moveTo(this.x, waterY - edgeRise);
+                for (let px = this.x; px <= this.x + this.w; px += 2) {
+                    let normX = (px - this.x) / this.w;
+                    let meniscusOffset = 4 * edgeRise * Math.pow(normX - 0.5, 2) - edgeRise;
+                    let noise = Math.sin(this.wavePhase + px * 0.05) * waveAmp;
+                    ctx.lineTo(px, waterY + meniscusOffset + noise);
+                }
+                ctx.strokeStyle = themeDark ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.9)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Ripples overlay
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(this.x, 0, this.w, this.h + this.y);
+                ctx.clip(); // Keep ripples inside cylinder
+                for (let r of this.ripples) {
+                    ctx.beginPath();
+                    ctx.ellipse(r.x, waterY, r.radius, r.radius * 0.15, 0, 0, Math.PI * 2);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${r.alpha})`;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                ctx.restore();
+                ctx.restore();
+
+                // 2. Draw Cylinder Glass (Front Layer)
+                ctx.save();
+                ctx.beginPath();
+                const rRadius = 10;
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, floorY - rRadius);
+                ctx.arcTo(this.x, floorY, this.x + rRadius, floorY, rRadius);
+                ctx.lineTo(this.x + this.w - rRadius, floorY);
+                ctx.arcTo(this.x + this.w, floorY, this.x + this.w, floorY - rRadius, rRadius);
+                ctx.lineTo(this.x + this.w, this.y);
+                
+                // Glass stroke
+                ctx.strokeStyle = themeDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Glass gradient fill overlay
+                const cg = ctx.createLinearGradient(this.x, 0, this.x + this.w, 0);
+                cg.addColorStop(0, themeDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.4)');
+                cg.addColorStop(0.1, themeDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)');
+                cg.addColorStop(0.5, 'rgba(255,255,255,0)');
+                cg.addColorStop(0.9, themeDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.6)');
+                cg.addColorStop(1, themeDark ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.2)');
+                ctx.fillStyle = cg;
+                ctx.fill();
+
+                // 3. Draw Dynamic Graduations (Ticks & Labels)
+                ctx.fillStyle = themeDark ? '#f8fafc' : '#0f172a';
+                ctx.strokeStyle = themeDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)';
+                ctx.font = "bold 13px 'JetBrains Mono', monospace";
+                ctx.textAlign = "right";
+                ctx.textBaseline = "middle";
+
+                for (let v = 0; v <= this.maxVol; v += parseInt(this.graduationStep)) {
+                    let py = this.y + this.h - (v / this.maxVol) * this.h;
+                    let isMajor = v % 10 === 0;
+                    let tickLen = isMajor ? 18 : 10;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, py);
+                    ctx.lineTo(this.x + tickLen, py);
+                    ctx.lineWidth = isMajor ? 2 : 1;
+                    ctx.stroke();
+
+                    if (isMajor && v > 0) {
+                        ctx.fillText(v, this.x - 8, py);
+                    }
+                }
+                // Center bottom Meniscus pointing indicator
+                const menStartY = waterY + 2; // lowest point of meniscus
+                ctx.save();
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(this.x - 30, menStartY);
+                ctx.lineTo(this.x, menStartY);
+                ctx.strokeStyle = '#ef4444'; // Red pointer
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#ef4444';
+                ctx.font = "bold 10px 'Outfit'";
+                ctx.fillText("lire 👉", this.x - 35, menStartY);
+                ctx.restore();
+
+                ctx.restore();
+            }
+        }
+
+        /**
+         * The Main Physics Engine controlling World rendering and update loops.
+         */
+        class SimulationEngine {
+            constructor() {
+                this.canvas = document.getElementById('sim-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.dropOverlay = document.getElementById('drop-overlay');
+                this.fluidSys = new CylinderFluidSystem();
+                
+                this.activeObject = null; // Object currently inside the lab
+                this.initialWaterVol = 50;
+                this.baseWaterVol = 50; // water without object
+                
+                this.themeDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                // Interaction bindings
+                this.setupDragAndDrop();
+                
+                // Animation loop
+                requestAnimationFrame((t) => this.loop(t));
+            }
+
+            resize() {
+                const parent = this.canvas.parentElement;
+                this.canvas.width = parent.clientWidth;
+                this.canvas.height = parent.clientHeight;
+                
+                // Configure cylinder size dynamically
+                const cw = Math.min(130, this.canvas.width * 0.2);
+                const ch = Math.min(450, this.canvas.height * 0.8);
+                this.fluidSys.w = cw;
+                this.fluidSys.h = ch;
+                this.fluidSys.x = this.canvas.width / 2 - cw / 2;
+                this.fluidSys.y = this.canvas.height / 2 - ch / 2 + 20;
+            }
+
+            setBaseWaterVolume(v) {
+                this.baseWaterVol = v;
+                this.updateVolumes();
+            }
+
+            updateVolumes() {
+                if (this.activeObject && (this.activeObject.state === 'sunk' || this.activeObject.state === 'floating')) {
+                    const disp = this.activeObject.volume * this.activeObject.getSubmergedFraction();
+                    this.fluidSys.setTargetVolume(this.baseWaterVol + disp);
+                } else {
+                    this.fluidSys.setTargetVolume(this.baseWaterVol);
+                }
+            }
+
+            dropIntoCylinder(objDef) {
+                // Remove previous
+                this.activeObject = null;
+                
+                // Create new physics instance
+                this.activeObject = new SimObject(
+                    objDef.id, objDef.name, objDef.emoji, 
+                    objDef.density, objDef.volume, objDef.color
+                );
+                
+                // Spawn at top center of cylinder
+                this.activeObject.x = this.canvas.width / 2;
+                this.activeObject.y = this.fluidSys.y - 40;
+                this.activeObject.vy = 2; // Initial push
+                this.activeObject.state = 'falling';
+                
+                window.dispatchEvent(new CustomEvent('sim-object-dropped', { detail: this.activeObject }));
+            }
+
+            resetScene() {
+                this.activeObject = null;
+                this.fluidSys.targetVolume = this.baseWaterVol;
+                window.dispatchEvent(new CustomEvent('sim-reset'));
+            }
+
+            loop(time) {
+                // 1. UPDATE PHYSICS
+                this.fluidSys.update();
+                
+                if (this.activeObject && this.activeObject.state === 'falling') {
+                    const obj = this.activeObject;
+                    const waterY = this.fluidSys.getWaterY();
+                    const floorY = this.fluidSys.y + this.fluidSys.h;
+
+                    // Gravity
+                    obj.vy += 0.4;
+                    obj.y += obj.vy;
+                    obj.rotation += 0.05;
+
+                    // Water entry splash
+                    if (obj.y + obj.radius > waterY && !obj.splashed) {
+                        obj.splashed = true;
+                        this.fluidSys.addRipple(obj.x, Math.abs(obj.vy));
+                        // Start fluid displacement logic
+                        this.updateVolumes();
+                    }
+
+                    // Underwater physics (drag & buoyancy)
+                    if (obj.y > waterY) {
+                        obj.vy *= 0.85; // Heavy fluid drag
+                        
+                        // Buoyant force
+                        const gravity = 0.4;
+                        const buoyancyForce = gravity * (1000 / obj.density);
+                        obj.vy += (gravity - buoyancyForce);
+                        
+                        // Collision floor (Sink)
+                        if (obj.y + obj.radius > floorY) {
+                            obj.y = floorY - obj.radius;
+                            obj.vy = 0;
+                            if (!obj.floats()) {
+                                obj.state = 'sunk';
+                                window.dispatchEvent(new CustomEvent('sim-settled', {detail: obj}));
+                            }
+                        }
+
+                        // Floating equilibrium (Float)
+                        if (obj.floats() && obj.vy > -0.5 && obj.vy < 0.5) {
+                            const eqLevel = waterY + obj.radius * (obj.getSubmergedFraction() - 0.5) * 2;
+                            if (Math.abs(obj.y - eqLevel) < 2) {
+                                obj.state = 'floating';
+                                obj.floatBaseY = eqLevel;
+                                window.dispatchEvent(new CustomEvent('sim-settled', {detail: obj}));
+                            }
+                        }
+                        
+                        // Prevent popping out the top wildly
+                        if (obj.y < waterY && obj.floats()) {
+                            obj.vy += 0.5;
+                        }
+                    }
+                } else if (this.activeObject && this.activeObject.state === 'floating') {
+                    // Bobbing animation
+                    const eqLevel = this.fluidSys.getWaterY() + this.activeObject.radius * (this.activeObject.getSubmergedFraction() - 0.5) * 2;
+                    this.activeObject.y = eqLevel + Math.sin(time / 200) * 3;
+                } else if (this.activeObject && this.activeObject.state === 'sunk') {
+                    // Keep at bottom, respect water floor
+                    this.activeObject.y = this.fluidSys.y + this.fluidSys.h - this.activeObject.radius;
+                }
+
+                // 2. RENDER
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw Objects Behind Glass
+                if (this.activeObject) {
+                    this.ctx.save();
+                    this.ctx.translate(this.activeObject.x, this.activeObject.y);
+                    this.ctx.rotate(this.activeObject.rotation);
+                    
+                    this.ctx.font = `${this.activeObject.radius * 1.5}px serif`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(this.activeObject.emoji, 0, 0);
+                    
+                    this.ctx.restore();
+                }
+
+                // Draw Fluid & Glass Overlap
+                this.fluidSys.draw(this.ctx, this.themeDark);
+
+                requestAnimationFrame((t) => this.loop(t));
+            }
+
+            // HTML5 Drag and Drop Handlers mapped to Canvas bounding
+            setupDragAndDrop() {
+                const lab = document.getElementById('lab-area');
+                lab.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.dropOverlay.classList.add('active');
+                });
+                lab.addEventListener('dragleave', () => {
+                    this.dropOverlay.classList.remove('active');
+                });
+                lab.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.dropOverlay.classList.remove('active');
+                    const objId = e.dataTransfer.getData('text/plain');
+                    if(objId && ALL_OBJECTS[objId]) {
+                        this.dropIntoCylinder(ALL_OBJECTS[objId]);
+                    }
+                });
+            }
+        }
+
+        /*******************************************************************************
+         * APPLICATION CONTROLLER (UI, Modes, Events)
+         *******************************************************************************/
+
+        const ALL_OBJECTS = {
+            'rock': { id: 'rock', name: 'Pierre Irrégulière', emoji: '🪨', density: 2500, volume: 16, color: '#78716c' },
+            'wood': { id: 'wood', name: 'Cube en Chêne', emoji: '🟫', density: 700, volume: 24, color: '#9a3412' },
+            'iron': { id: 'iron', name: 'Poids en Fer', emoji: '🔩', density: 7800, volume: 10, color: '#334155' },
+            'ice':  { id: 'ice', name: 'Glaçon', emoji: '🧊', density: 917, volume: 18, color: '#38bdf8' }
+        };
+
+        class UIManager {
+            constructor(engine) {
+                this.engine = engine;
+                this.mode = 'guide'; // 'guide' or 'exercice'
+                this.v1 = 50;
+                this.v2 = 50;
+                this.vObj = 0;
+                
+                this.initDOM();
+                this.buildLibrary();
+                this.bindEvents();
+            }
+
+            initDOM() {
+                // Theme
+                document.getElementById('btn-theme').onclick = () => {
+                    const html = document.documentElement;
+                    const isDark = html.getAttribute('data-theme') === 'dark';
+                    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+                    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+                    this.engine.themeDark = !isDark;
+                };
+
+                // Settings Elements
+                this.elSlider = document.getElementById('water-slider');
+                this.elSliderLabel = document.getElementById('water-slider-val');
+                this.elGradSelect = document.getElementById('grad-precision');
+                
+                // Tabs
+                this.tabs = document.querySelectorAll('.tab-btn');
+                this.sections = document.querySelectorAll('.mode-section');
+
+                // Guide Elements
+                this.gV1 = document.getElementById('g-v1');
+                this.gV2 = document.getElementById('g-v2');
+                this.gObj = document.getElementById('g-vobj');
+                this.gCalcV1 = document.getElementById('g-calc-v1');
+                this.gCalcV2 = document.getElementById('g-calc-v2');
+                this.gFormula = document.getElementById('g-formula');
+
+                // Exercise Elements
+                this.exV1 = document.getElementById('ex-v1');
+                this.exV2 = document.getElementById('ex-v2');
+                this.exObj = document.getElementById('ex-vobj');
+                this.exFeedback = document.getElementById('ex-feedback');
+            }
+
+            buildLibrary() {
+                const container = document.getElementById('objects-palette');
+                const ghost = document.getElementById('drag-ghost');
+                
+                Object.values(ALL_OBJECTS).forEach(obj => {
+                    const card = document.createElement('div');
+                    card.className = 'obj-card';
+                    card.draggable = true;
+                    card.id = `drg-${obj.id}`;
+                    card.innerHTML = `
+                        <div class="obj-icon">${obj.emoji}</div>
+                        <div class="obj-info">
+                            <div class="obj-name">${obj.name}</div>
+                            <div class="obj-specs">V ≈ ${obj.volume}mL · ρ=${obj.density}</div>
+                        </div>
+                    `;
+                    
+                    // Drag logic
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', obj.id);
+                        // Ghost styling
+                        ghost.innerHTML = obj.emoji;
+                        ghost.style.display = 'block';
+                        // Keep blank default image
+                        e.dataTransfer.setDragImage(new Image(), 0, 0); 
+                    });
+                    
+                    document.addEventListener('drag', (e) => {
+                        if (e.clientX === 0 || e.clientY === 0) return;
+                        ghost.style.left = e.clientX + 'px';
+                        ghost.style.top = e.clientY + 'px';
+                    });
+
+                    card.addEventListener('dragend', () => { ghost.style.display = 'none'; });
+
+                    // Click to drop fallback
+                    card.addEventListener('click', () => {
+                        if (this.mode === 'exercice' && this.engine.activeObject) return; // one item at a time
+                        this.engine.dropIntoCylinder(obj);
+                    });
+
+                    container.appendChild(card);
+                });
+            }
+
+            bindEvents() {
+                // Water Slider
+                this.elSlider.addEventListener('input', (e) => {
+                    this.v1 = parseInt(e.target.value);
+                    this.elSliderLabel.innerText = this.v1 + ' mL';
+                    this.engine.setBaseWaterVolume(this.v1);
+                    this.updateGuideUI();
+                });
+
+                // Graduation Precison
+                this.elGradSelect.addEventListener('change', (e) => {
+                    this.engine.fluidSys.graduationStep = parseFloat(e.target.value);
+                });
+
+                // Mode Switching
+                this.tabs.forEach(t => t.addEventListener('click', (e) => this.switchMode(e.target.dataset.target)));
+
+                // Reset Action
+                document.getElementById('btn-reset').addEventListener('click', () => {
+                    this.engine.resetScene();
+                    this.resetLibraryState();
+                });
+
+                // Exercise: Generate new case
+                document.getElementById('btn-new-exercise').addEventListener('click', () => {
+                    this.engine.resetScene();
+                    this.resetLibraryState();
+                    // Random water between 25 and 65
+                    let rndV1 = Math.floor(Math.random() * 9 + 5) * 5; // steps of 5
+                    this.v1 = rndV1;
+                    this.engine.setBaseWaterVolume(this.v1);
+                    this.elSliderLabel.innerText = this.v1 + ' mL (Fixé par l\'exercice)';
+                    this.elSlider.value = this.v1;
+                    
+                    this.exV1.value = ''; this.exV2.value = ''; this.exObj.value = '';
+                    this.hideFeedback();
+                });
+
+                // Exercise: Verify
+                document.getElementById('btn-verify').addEventListener('click', () => {
+                    this.verifyExercise();
+                });
+
+                // Listen to Engine Events
+                window.addEventListener('sim-object-dropped', (e) => {
+                    this.resetLibraryState();
+                    document.getElementById(`drg-${e.detail.id}`).classList.add('in-lab');
+                    if (this.mode === 'guide') {
+                        this.gV2.innerText = 'Calcul en cours...';
+                        this.gFormula.classList.remove('highlight');
+                    }
+                });
+
+                window.addEventListener('sim-settled', (e) => {
+                    const obj = e.detail;
+                    this.vObj = obj.volume * obj.getSubmergedFraction();
+                    this.v2 = this.v1 + this.vObj;
+                    this.updateGuideUI(true);
+                });
+
+                window.addEventListener('sim-reset', () => {
+                    this.v2 = this.v1;
+                    this.vObj = 0;
+                    this.updateGuideUI();
+                });
+            }
+
+            switchMode(targetMode) {
+                this.mode = targetMode;
+                this.tabs.forEach(t => t.classList.toggle('active', t.dataset.target === targetMode));
+                this.sections.forEach(s => s.classList.toggle('active', s.id === `${targetMode}-mode`));
+                
+                if (targetMode === 'exercice') {
+                    document.getElementById('water-slider').disabled = true;
+                    document.getElementById('btn-new-exercise').click(); // trigger a random setup
+                } else {
+                    document.getElementById('water-slider').disabled = false;
+                    this.updateGuideUI();
+                }
+            }
+
+            resetLibraryState() {
+                document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('in-lab'));
+            }
+
+            updateGuideUI(isSettled = false) {
+                this.gV1.innerText = this.v1;
+                this.gCalcV1.innerText = this.v1;
+                
+                if (isSettled && this.engine.activeObject) {
+                    this.gV2.innerText = this.v2.toFixed(1);
+                    this.gCalcV2.innerText = this.v2.toFixed(1);
+                    this.gObj.innerText = this.vObj.toFixed(1);
+                    this.gFormula.classList.add('highlight');
+                } else if (!this.engine.activeObject) {
+                    this.gV2.innerText = '--';
+                    this.gCalcV2.innerText = '--';
+                    this.gObj.innerText = '--';
+                    this.gFormula.classList.remove('highlight');
+                }
+            }
+
+            verifyExercise() {
+                const uV1 = parseFloat(this.exV1.value);
+                const uV2 = parseFloat(this.exV2.value);
+                const uObj = parseFloat(this.exObj.value);
+
+                if (isNaN(uV1) || isNaN(uV2) || isNaN(uObj)) {
+                    this.showFeedback('Veuillez remplir tous les champs avec des valeurs numériques.', 'error');
+                    return;
+                }
+
+                if (!this.engine.activeObject) {
+                    this.showFeedback('Vous n\'avez glissé aucun objet ! Plongez un objet d\'abord.', 'error');
+                    return;
+                }
+
+                // Check tolerances
+                const v1Correct = Math.abs(uV1 - this.v1) < 0.5;
+                const v2Correct = Math.abs(uV2 - this.v2) < 0.5;
+                const objCorrect = Math.abs(uObj - this.vObj) < 0.5;
+
+                if (v1Correct && v2Correct && objCorrect) {
+                    this.showFeedback('🎉 Félicitations ! Vos lectures et vos calculs sont justes.', 'success');
+                } else if (!v1Correct || !v2Correct) {
+                    this.showFeedback('❌ Erreur de lecture. Lisez attentivement le niveau d\'eau plat (au bas du trait courbé/ménisque).', 'error');
+                } else {
+                    this.showFeedback('❌ La lecture est bonne, mais le calcul (V2 - V1) est erroné.', 'error');
+                }
+            }
+
+            showFeedback(msg, type) {
+                this.exFeedback.innerText = msg;
+                this.exFeedback.className = `feedback-box ${type}`;
+            }
+
+            hideFeedback() {
+                this.exFeedback.className = 'feedback-box hidden';
+            }
+        }
+
+        // Initialize App once DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            const Engine = new SimulationEngine();
+            const App = new UIManager(Engine);
+        });
+
+    </script>
+</body>
+</html>
