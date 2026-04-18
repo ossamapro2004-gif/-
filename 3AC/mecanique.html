@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCSim</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%2300BFFF' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v7.31'/%3E%3Cpath d='M14 9.3V1.99'/%3E%3Cpath d='M8.5 2h7'/%3E%3Cpath d='M14 9.3a6.5 6.5 0 1 1-4 0'/%3E%3Cpath d='M5.52 16h12.96'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <nav class="glass-nav">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M10 2v7.31"></path><path d="M14 9.3V1.99"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+            PCSim
+        </div>
+        <div class="nav-links">
+            <a href="../index.html" data-fr="Accueil" data-ar="الرئيسية">Accueil</a>
+            <a href="../1AC/index.html" data-fr="1AC" data-ar="الأولى إعدادي">1AC</a>
+            <a href="../2AC/index.html" data-fr="2AC" data-ar="الثانية إعدادي">2AC</a>
+            <a href="index.html" class="active" data-fr="3AC" data-ar="الثالثة إعدادي">3AC</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="btn-glass btn-icon" aria-label="Basculer le thème">🌙</button>
+            <button id="lang-toggle" class="btn-glass">عربي</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="hero">
+            <h1 data-fr="Mécanique" data-ar="الميكانيك">Mécanique</h1>
+            <p data-fr="Sélectionnez la simulation." data-ar="اختر المحاكاة.">Sélectionnez la simulation.</p>
+        </header>
+
+        <div class="cards-grid sim-grid">
+            <!-- 1. Mouvement : Translation et Rotation -->
+            <a href="#" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="8" cy="12" r="5"></circle>
+                        <circle cx="8" cy="12" r="1"></circle>
+                        <path d="M8 7 A 5 5 0 0 1 13 12"></path>
+                        <polygon points="12 11 14 12 12 13"></polygon>
+                        <line x1="16" y1="12" x2="22" y2="12"></line>
+                        <polyline points="19 9 22 12 19 15"></polyline>
+                    </svg>
+                </div>
+                <h3 data-fr="Mouvement : Translation et Rotation" data-ar="الحركة: الإزاحة والدوران وطبيعة الحركة">Mouvement : Translation et Rotation</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 2. Notion de Force et sa représentation -->
+            <a href="#" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="9" width="6" height="6"></rect>
+                        <line x1="10" y1="12" x2="20" y2="12"></line>
+                        <polyline points="17 9 20 12 17 15"></polyline>
+                        <text x="14" y="10" font-size="6" fill="currentColor" stroke="none">F</text>
+                    </svg>
+                </div>
+                <h3 data-fr="Notion de Force et sa représentation" data-ar="مفهوم القوة وتمثيلها">Notion de Force et sa représentation</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 3. Équilibre d'un corps soumis à deux forces -->
+            <a href="#" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <line x1="14" y1="12" x2="22" y2="12"></line>
+                        <polyline points="19 9 22 12 19 15"></polyline>
+                        <line x1="10" y1="12" x2="2" y2="12"></line>
+                        <polyline points="5 9 2 12 5 15"></polyline>
+                    </svg>
+                </div>
+                <h3 data-fr="Équilibre d'un corps" data-ar="توازن جسم خاضع لقوتين">Équilibre d'un corps</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 4. Poids et Masse -->
+            <a href="#" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2A2 2 0 0 0 12 6"></path>
+                        <line x1="12" y1="6" x2="12" y2="10"></line>
+                        <path d="M8 10h8v8H8z"></path>
+                        <text x="12" y="15" text-anchor="middle" font-size="5" fill="currentColor" stroke="none">m</text>
+                    </svg>
+                </div>
+                <h3 data-fr="Poids et Masse" data-ar="الوزن والكتلة">Poids et Masse</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+        </div>
+    </main>
+
+    <script src="../assets/main.js"></script>
+</body>
+</html>

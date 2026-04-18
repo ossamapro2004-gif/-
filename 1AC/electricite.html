@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCSim - Électricité</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%2300BFFF' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v7.31'/%3E%3Cpath d='M14 9.3V1.99'/%3E%3Cpath d='M8.5 2h7'/%3E%3Cpath d='M14 9.3a6.5 6.5 0 1 1-4 0'/%3E%3Cpath d='M5.52 16h12.96'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+    <nav class="glass-nav">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M10 2v7.31"></path><path d="M14 9.3V1.99"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+            PCSim
+        </div>
+        <div class="nav-links">
+            <a href="../index.html" data-fr="Accueil" data-ar="الرئيسية">Accueil</a>
+            <a href="index.html" class="active" data-fr="1AC" data-ar="الأولى إعدادي">1AC</a>
+            <a href="../2AC/index.html" data-fr="2AC" data-ar="الثانية إعدادي">2AC</a>
+            <a href="../3AC/index.html" data-fr="3AC" data-ar="الثالثة إعدادي">3AC</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="btn-glass btn-icon" aria-label="Basculer le thème">🌙</button>
+            <button id="lang-toggle" class="btn-glass">عربي</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="hero">
+            <h1 data-fr="Électricité" data-ar="الكهرباء">Électricité</h1>
+            <p data-fr="Explorez les bases de l'électricité à travers ces simulations interactives." data-ar="اكتشف أساسيات الكهرباء من خلال هذه المحاكاة التفاعلية.">Explorez les bases de l'électricité à travers ces simulations interactives.</p>
+        </header>
+
+        <div class="cards-grid sim-grid">
+            <!-- 1. Conducteurs et Isolants -->
+            <a href="conducteurs_isolants.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><line x1="2" y1="15" x2="6" y2="15"></line><line x1="18" y1="15" x2="22" y2="15"></line></svg>
+                </div>
+                <h3 data-fr="Conducteurs et Isolants" data-ar="الموصلات والعوازل">Conducteurs et Isolants</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 2. Circuits Série et Parallèle -->
+            <a href="circuits_serie_parallele.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="12" r="2"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="19" y1="12" x2="22" y2="12"></line></svg>
+                </div>
+                <h3 data-fr="Circuits Série et Parallèle" data-ar="التوالي والتوازي">Circuits Série et Parallèle</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 3. Résistance Électrique -->
+            <a href="resistance_electrique.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-1.5-4.5L14 16.5l-2.5-9L9 16.5 7.5 7.5 6 12H2"/></svg>
+                </div>
+                <h3 data-fr="Résistance Électrique" data-ar="المقاومة الكهربائية">Résistance Électrique</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 4. Loi des Noeuds -->
+            <a href="loi_des_noeuds.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M2 12h8M14 12h8M12 2v8M12 14v8"/><path d="M8 10l2 2-2 2M16 10l-2 2 2 2"/></svg>
+                </div>
+                <h3 data-fr="Loi des Noeuds" data-ar="قانون العقد">Loi des Noeuds</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 5. Loi des Tensions -->
+            <a href="loi_des_tensions.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="2"/><line x1="12" y1="7" x2="12" y2="17"/><path d="M7 12h2M15 12h2M16 11v2M8 12h-1"/></svg>
+                </div>
+                <h3 data-fr="Loi des Tensions" data-ar="قانون التوترات">Loi des Tensions</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+
+            <!-- 6. Recherche de Panne -->
+            <a href="recherche_de_panne.html" class="glass-card sim-card">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8l2 3h-4l2 3"/><path d="M11 5v2M11 14v2"/></svg>
+                </div>
+                <h3 data-fr="Recherche de Panne" data-ar="البحث عن العطب">Recherche de Panne</h3>
+                <div class="btn-explore" data-fr="Explorer →" data-ar="استكشف ←">Explorer →</div>
+            </a>
+        </div>
+    </main>
+
+    <script src="../assets/main.js"></script>
+</body>
+</html>
