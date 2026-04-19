@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCSim – Mesure de la Masse</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' stroke='%2300BFFF' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2v7.31'/%3E%3Cpath d='M14 9.3V1.99'/%3E%3Cpath d='M8.5 2h7'/%3E%3Cpath d='M14 9.3a6.5 6.5 0 1 1-4 0'/%3E%3Cpath d='M5.52 16h12.96'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/style.css">
+    <style>
+        /* CSS spécifique pour la balance */
+        :root {
+            --glass-bg: rgba(70, 130, 180, 0.08);
+            --glass-border: rgba(70, 130, 180, 0.25);
+            --lcd-glow: rgba(34, 197, 94, 0.6);
+            --lcd-text: #22c55e;
+        }
+        [data-theme="dark"], html[data-theme="dark"] {
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --lcd-glow: rgba(34, 197, 94, 0.8);
+            --lcd-text: #4ade80;
+        }
+        
+        main.container {
+            transform: scale(0.70);
+            transform-origin: top center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="glass-nav">
+        <a href="../index.html" class="logo" style="text-decoration:none; color:inherit;">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M10 2v7.31"></path><path d="M14 9.3V1.99"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+            PCSim
+        </a>
+        <div class="nav-links">
+            <a href="../index.html" data-fr="Accueil" data-ar="الرئيسية">Accueil</a>
+            <a href="index.html" class="active" data-fr="1AC" data-ar="الأولى إعدادي">1AC</a>
+            <a href="../2AC/index.html" data-fr="2AC" data-ar="الثانية إعدادي">2AC</a>
+            <a href="../3AC/index.html" data-fr="3AC" data-ar="الثالثة إعدادي">3AC</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle" class="btn-glass btn-icon" aria-label="Basculer le thème">🌙</button>
+            <button id="lang-toggle" class="btn-glass">عربي</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header class="hero" style="text-align: left; margin-bottom: 0.5rem; padding-bottom: 0;">
+            <div class="breadcrumb" style="display:flex; gap:0.5rem; font-size:0.9rem; color:var(--text-muted); margin-bottom: 1rem;">
+                <a href="index.html" style="color:var(--accent); text-decoration:none;">1AC</a>
+                <span>›</span>
+                <a href="matiere.html" style="color:var(--accent); text-decoration:none;" data-fr="Matière" data-ar="المادة">Matière</a>
+                <span>›</span>
+                <span style="font-weight:600;" id="breadcrumb-title" data-fr="Mesure de la Masse" data-ar="قياس الكتلة">Mesure de la Masse</span>
+            </div>
+        </header>
+
+        <div id="react-root"></div>
+    </main>
+
+    <script src="../assets/main.js"></script>
+    
+    <!-- React & Tailwind Setup -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]'],
+            corePlugins: { preflight: false }
+        }
+    </script>
+    <style>
+        /* Essential Tailwind preflight for the root */
+        #react-root *, #react-root ::before, #react-root ::after {
+            box-sizing: border-box;
+            border-width: 0;
+            border-style: solid;
+            border-color: #e2e8f0;
+        }
+        [data-theme="dark"] #react-root *, [data-theme="dark"] #react-root ::before, [data-theme="dark"] #react-root ::after {
+            border-color: #475569;
+        }
+    </style>
+    
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const RefreshCcw = ({className}) => (
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>
+        );
+
+        const useBilingual = () => {
+            const [lang, setLang] = useState(document.documentElement.lang || 'fr');
+            useEffect(() => {
+                const observer = new MutationObserver(() => setLang(document.documentElement.lang || 'fr'));
+                observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+                return () => observer.disconnect();
+            }, []);
+            return lang;
+        };
+
+        const TEXTS = {
+            fr: {
+                objectsTitle: "1. Objets",
+                dragHelp: "Glissez et déposez sur la balance",
+                settingsTitle: "2. Paramètres",
+                unitLabel: "Unité de mesure :",
+                tareBtn: "TARE",
+                resetBtn: "Vider la balance"
+            },
+            ar: {
+                objectsTitle: "1. الأجسام",
+                dragHelp: "اسحب وأسقط على الميزان",
+                settingsTitle: "2. الإعدادات",
+                unitLabel: "وحدة القياس:",
+                tareBtn: "تصفير",
+                resetBtn: "إفراغ الميزان"
+            }
+        };
+
+        const BOTTLE_SVG = `
+            <svg viewBox="0 0 100 260" preserveAspectRatio="none" class="w-full h-full drop-shadow-md">
+                <path d="M 30 70 C 30 40, 40 35, 42 25 L 42 15 L 58 15 L 58 25 C 60 35, 70 40, 70 70 L 70 210 C 70 230, 65 240, 60 240 C 55 240, 55 230, 50 230 C 45 230, 45 240, 40 240 C 35 240, 30 230, 30 210 Z" fill="#d0e2ef"/>
+                <path d="M 30 70 C 30 40, 40 35, 42 25 L 42 15 L 58 15 L 58 25 C 60 35, 70 40, 70 70 L 70 210 C 70 230, 65 240, 60 240 C 55 240, 55 230, 50 230 C 45 230, 45 240, 40 240 C 35 240, 30 230, 30 210 Z" fill="none" stroke="#abc2d6" stroke-width="2"/>
+                <path d="M 35 75 C 35 55, 38 45, 43 35" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+                <path d="M 35 180 C 35 200, 36 215, 40 225" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+                <rect x="30" y="110" width="40" height="60" fill="#38bdf8"/>
+                <rect x="55" y="110" width="15" height="60" fill="#0284c7" opacity="0.3"/>
+                <rect x="30" y="110" width="8" height="60" fill="#ffffff" opacity="0.2"/>
+                <g transform="translate(0, 0)">
+                    <rect x="38" y="22" width="24" height="6" fill="#64748b" opacity="0.5" rx="1"/>
+                    <rect x="37" y="5" width="26" height="18" fill="#1e3a8a" rx="2"/>
+                    <rect x="55" y="5" width="8" height="18" fill="#172554" rx="2"/>
+                </g>
+            </svg>
+        `;
+
+        const TEST_OBJECTS = {
+          fr: [
+            { id: 'stone', name: 'Pierre', mass: 200, color: 'bg-slate-700 dark:bg-slate-500', shape: 'rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%]', width: '60px', height: '50px', hasSvg: false },
+            { id: 'bottle', name: "Bouteille d'eau", mass: 150, color: '', shape: '', width: '52px', height: '95px', hasSvg: true, svgContent: BOTTLE_SVG },
+            { id: 'gold', name: "Plaque d'or", mass: 100, color: 'bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 border border-yellow-800 shadow-[inset_1px_1px_5px_rgba(255,255,255,0.8)]', shape: 'rounded-[2px]', width: '75px', height: '18px', hasSvg: false },
+          ],
+          ar: [
+            { id: 'stone', name: 'حجر', mass: 200, color: 'bg-slate-700 dark:bg-slate-500', shape: 'rounded-[40%_60%_70%_30%_/_40%_50%_60%_50%]', width: '60px', height: '50px', hasSvg: false },
+            { id: 'bottle', name: 'قارورة ماء', mass: 150, color: '', shape: '', width: '52px', height: '95px', hasSvg: true, svgContent: BOTTLE_SVG },
+            { id: 'gold', name: 'صفيحة ذهب', mass: 100, color: 'bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-700 border border-yellow-800 shadow-[inset_1px_1px_5px_rgba(255,255,255,0.8)]', shape: 'rounded-[2px]', width: '75px', height: '18px', hasSvg: false },
+          ]
+        };
+
+        function App() {
+          const lang = useBilingual();
+          const t = TEXTS[lang];
+          const isRtl = lang === 'ar';
+          const objectsList = TEST_OBJECTS[lang];
+          
+          const [objectsOnScale, setObjectsOnScale] = useState([]);
+          const [tareWeight, setTareWeight] = useState(0);
+          const [unit, setUnit] = useState('g');
+          const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+          const totalRawMass = objectsOnScale.reduce((sum, obj) => sum + obj.mass, 0);
+          let displayedMass = totalRawMass - tareWeight;
+          
+          let displayString = "";
+          if (unit === 'kg') {
+              displayString = (displayedMass / 1000).toFixed(3);
+          } else {
+              displayString = displayedMass.toFixed(1);
+          }
+
+          const handleDragStart = (e, obj, source) => {
+            e.dataTransfer.setData('object', JSON.stringify(obj));
+            e.dataTransfer.setData('source', source);
+            e.dataTransfer.effectAllowed = 'copy';
+          };
+
+          const handleDropOnScale = (e) => {
+            e.preventDefault();
+            setIsDraggingOver(false);
+            try {
+              const objData = e.dataTransfer.getData('object');
+              const source = e.dataTransfer.getData('source');
+              if (objData && source === 'shelf') {
+                const obj = JSON.parse(objData);
+                // Assign a unique id and random offset for visual stacking
+                const newObj = { 
+                    ...obj, 
+                    uniqueId: Math.random().toString(36).substr(2, 9), 
+                    offsetX: Math.random() * 100 - 50,
+                    offsetY: objectsOnScale.length * 3 // slight stack effect
+                };
+                setObjectsOnScale(prev => [...prev, newObj]);
+              }
+            } catch (err) {}
+          };
+          
+          const handleRemoveFromScale = (uniqueId) => {
+               setObjectsOnScale(prev => prev.filter(o => o.uniqueId !== uniqueId));
+          }
+
+          const resetSimulation = () => {
+            setObjectsOnScale([]);
+            setTareWeight(0);
+            setUnit('g');
+          };
+
+          return (
+            <div dir={isRtl ? "rtl" : "ltr"} className="w-full max-w-[1400px] mx-auto bg-[var(--surface)] text-[var(--text)] rounded-xl shadow-[0_8px_30px_var(--shadow)] border border-[var(--card-border)] p-6 font-sans flex flex-col xl:flex-row gap-8 transition-colors duration-300 mt-6 mb-12">
+              
+              {/* Panneau Latéral 1 : Objets */}
+              <div className="w-full xl:w-[480px] flex flex-col gap-8">
+                <div className="bg-[var(--surface2)] p-8 rounded-xl border border-[var(--card-border)] shadow-sm hover:shadow-[0_0_15px_var(--shadow)] transition-all flex-1">
+                  <h3 className={`font-bold text-[var(--accent)] mb-2 uppercase tracking-wider ${isRtl ? 'text-xl' : 'text-base'}`}>{t.objectsTitle}</h3>
+                  <p className="text-base font-semibold text-[var(--text)] mb-8 text-center whitespace-nowrap">{t.dragHelp}</p>
+                  
+                  <div className="flex justify-between gap-6 mb-8 mt-12">
+                    {objectsList.map((obj) => (
+                      <div key={obj.id} className="flex-1 flex flex-col items-center justify-end bg-[var(--surface)] p-4 rounded-xl border border-[var(--card-border)] hover:border-[var(--accent)] hover:shadow-[0_0_15px_var(--accent-glow)] transition-all cursor-grab active:cursor-grabbing relative h-[160px]">
+                        {obj.hasSvg ? (
+                          <div 
+                            draggable 
+                            onDragStart={(e) => handleDragStart(e, obj, 'shelf')}
+                            className="pointer-events-auto absolute bottom-[55px] z-10 flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-transform"
+                            style={{ width: obj.width, height: obj.height }}
+                            title={`${obj.mass} g`}
+                            dangerouslySetInnerHTML={{ __html: obj.svgContent }}
+                          ></div>
+                        ) : (
+                          <div 
+                            draggable 
+                            onDragStart={(e) => handleDragStart(e, obj, 'shelf')}
+                            className={`${obj.color} ${obj.shape} pointer-events-auto shadow-md absolute bottom-[55px] z-10 flex items-center justify-center cursor-grab active:cursor-grabbing`}
+                            style={{ width: obj.width, height: obj.height }}
+                            title={`${obj.mass} g`}
+                          ></div>
+                        )}
+                        <span className={`font-bold text-[var(--text)] text-center leading-tight absolute w-full px-2 z-20 bottom-1 ${isRtl ? 'text-lg' : 'text-sm'}`}>{obj.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Zône d'Expérience (Balance Électronique) */}
+              <div className="flex-[1.2] bg-[var(--surface2)] rounded-xl border border-[var(--card-border)] p-6 flex flex-col items-center justify-end relative min-h-[600px] shadow-inner transition-colors duration-300">
+                
+                {/* Balance Design */}
+                <div className="relative flex flex-col items-center mt-auto w-[400px]">
+                    
+                    {/* Conteneur de Zone de Dépôt Étendu (250px de haut pour capter les objets plus haut) */}
+                    <div 
+                      className="relative w-[340px] h-[250px] flex justify-center items-end z-10 pb-1"
+                      onDragOver={(e) => { e.preventDefault(); setIsDraggingOver(true); e.dataTransfer.dropEffect = 'copy'; }}
+                      onDragLeave={() => setIsDraggingOver(false)}
+                      onDrop={handleDropOnScale}
+                    >
+                        {/* Plateau Visuel de la balance */}
+                        <div className={`absolute bottom-0 left-0 w-full h-[25px] bg-slate-300 dark:bg-slate-600 rounded-t-[10px] border-b-4 border-slate-400 dark:border-slate-800 transition-all duration-300 shadow-[0_10px_20px_rgba(0,0,0,0.2)] ${
+                            isDraggingOver ? 'bg-cyan-200 dark:bg-cyan-700 shadow-[0_0_30px_var(--accent-glow)] scale-105' : ''
+                        }`}></div>
+
+                        {/* Objets posés sur le plateau */}
+                        {objectsOnScale.map((obj, idx) => {
+                            if (obj.hasSvg) {
+                                return (
+                                  <div 
+                                      key={obj.uniqueId}
+                                      className="absolute shadow-xl cursor-pointer hover:opacity-80 hover:brightness-125 transition-transform drop-shadow-lg"
+                                      style={{ 
+                                          width: obj.width, height: obj.height, 
+                                          bottom: `28px`,
+                                          left: `calc(50% - ${parseInt(obj.width)/2}px + ${obj.offsetX}px)`,
+                                          zIndex: 20 + idx 
+                                      }}
+                                      onClick={() => handleRemoveFromScale(obj.uniqueId)}
+                                      title="Cliquez pour retirer"
+                                      dangerouslySetInnerHTML={{ __html: obj.svgContent }}
+                                  ></div>
+                                );
+                            }
+                            return (
+                                <div 
+                                    key={obj.uniqueId}
+                                    className={`${obj.color} ${obj.shape} absolute shadow-xl cursor-pointer hover:opacity-80 hover:brightness-125 transition-transform`}
+                                    style={{ 
+                                        width: obj.width, height: obj.height, 
+                                        bottom: `30px`,
+                                        left: `calc(50% - ${parseInt(obj.width)/2}px + ${obj.offsetX}px)`,
+                                        zIndex: 20 + idx 
+                                    }}
+                                    onClick={() => handleRemoveFromScale(obj.uniqueId)}
+                                    title="Cliquez pour retirer"
+                                ></div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Support du plateau */}
+                    <div className="w-[180px] h-[40px] bg-slate-400 dark:bg-slate-700 mx-auto z-0 relative flex justify-center">
+                        <div className="absolute top-0 w-full h-[15px] bg-black/20"></div>
+                        <div className="w-[100px] h-full bg-slate-500 dark:bg-slate-800"></div>
+                    </div>
+
+                    {/* Base de la balance */}
+                    <div className="w-full bg-[var(--surface)] border-2 border-[var(--card-border)] hover:border-[var(--accent)] rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.4)] relative z-20 flex flex-col items-center transition-all">
+                        
+                        {/* Marque/Logo fictif */}
+                        <div className="absolute top-4 left-6 text-xs font-black tracking-widest text-[var(--accent)] opacity-70 border border-[var(--accent)] px-2 py-1 rounded">PCSIM-X1</div>
+
+                        {/* Écran LCD (Verrouillé en LTR pour toujours afficher g/kg à droite) */}
+                        <div dir="ltr" className="bg-[#0f172a] border-[6px] border-slate-800 rounded-xl p-4 w-[320px] flex justify-end items-center shadow-[inset_0_5px_20px_rgba(0,0,0,0.8)] relative overflow-hidden mb-8 mt-5 cursor-default">
+                            {/* Reflexion vitrée */}
+                            <div className="absolute top-0 left-0 w-full h-[40%] bg-white/5 pointer-events-none rounded-t-sm"></div>
+                            
+                            <div className="font-mono text-6xl font-bold tracking-widest flex items-baseline z-10" style={{ color: "var(--lcd-text)", textShadow: "0 0 20px var(--lcd-glow)" }}>
+                                {displayString} <span className="text-3xl ml-3 font-sans font-semibold tracking-normal">{unit}</span>
+                            </div>
+                        </div>
+
+                        {/* Bouton TARE */}
+                        <button 
+                            onClick={() => setTareWeight(totalRawMass)}
+                            className="bg-red-500 hover:bg-red-600 text-white font-black text-2xl py-4 px-16 rounded-full shadow-[0_5px_0_#991b1b,0_10px_20px_rgba(239,68,68,0.6)] active:shadow-[0_0px_0_#991b1b,0_0px_0px_rgba(239,68,68,0)] active:translate-y-[5px] transition-all border-2 border-red-400"
+                        >
+                            {t.tareBtn}
+                        </button>
+
+                    </div>
+                </div>
+
+              </div>
+
+              {/* Panneau Latéral 2 : Paramètres & Reset */}
+              <div className="w-full xl:w-[480px] flex flex-col gap-8">
+                
+                {/* 2. Paramètres */}
+                <div className="bg-[var(--surface2)] p-8 rounded-xl border border-[var(--card-border)] flex flex-col relative overflow-hidden transition-all hover:shadow-[0_0_15px_var(--accent-glow)] hover:border-[var(--accent)]">
+                  <h3 className={`font-bold text-[var(--accent)] mb-8 uppercase tracking-wider relative z-10 ${isRtl ? 'text-xl' : 'text-base'}`}>{t.settingsTitle}</h3>
+                  
+                  <div className="flex flex-col items-center gap-5 mb-6 mt-4">
+                    <span className="text-xl font-semibold text-[var(--text)] whitespace-nowrap">{t.unitLabel}</span>
+                    <div className="flex w-full bg-[var(--surface)] rounded-xl p-1.5 border border-[var(--card-border)] shadow-inner">
+                        <button 
+                            className={`flex-1 py-3 rounded-lg font-bold text-xl transition-all ${unit === 'g' ? 'bg-[var(--accent)] text-white shadow-[0_0_10px_var(--accent-glow)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                            onClick={() => setUnit('g')}
+                        >
+                            g
+                        </button>
+                        <button 
+                            className={`flex-1 py-3 rounded-lg font-bold text-xl transition-all ${unit === 'kg' ? 'bg-[var(--accent)] text-white shadow-[0_0_10px_var(--accent-glow)]' : 'text-[var(--text-muted)] hover:text-[var(--text)]'}`}
+                            onClick={() => setUnit('kg')}
+                        >
+                            kg
+                        </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bouton Reset */}
+                <button onClick={resetSimulation} className="w-full py-5 mt-auto flex justify-center items-center text-xl text-red-500 bg-[var(--surface2)] hover:bg-red-500 hover:text-white rounded-xl font-bold transition-all border border-red-500 hover:shadow-[0_0_20px_rgba(239,68,68,0.5)]">
+                  <RefreshCcw className={`w-6 h-6 ${isRtl ? 'ml-3' : 'mr-3'}`} /> {t.resetBtn}
+                </button>
+              </div>
+
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('react-root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

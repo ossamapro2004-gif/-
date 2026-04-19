@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 260">
+    <!-- Bottle outline/body -->
+    <path d="M 30 70 
+             C 30 40, 40 35, 42 25 
+             L 42 15 
+             L 58 15 
+             L 58 25 
+             C 60 35, 70 40, 70 70 
+             L 70 210 
+             C 70 230, 65 240, 60 240 
+             C 55 240, 55 230, 50 230 
+             C 45 230, 45 240, 40 240 
+             C 35 240, 30 230, 30 210 
+             Z" 
+          fill="#d0e2ef"/>
+          
+    <path d="M 30 70 C 30 40, 40 35, 42 25 L 42 15 L 58 15 L 58 25 C 60 35, 70 40, 70 70 L 70 210 C 70 230, 65 240, 60 240 C 55 240, 55 230, 50 230 C 45 230, 45 240, 40 240 C 35 240, 30 230, 30 210 Z" fill="none" stroke="#abc2d6" stroke-width="2"/>
+
+    <!-- Plastic Reflection Left -->
+    <path d="M 35 75 C 35 55, 38 45, 43 35" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 35 180 C 35 200, 36 215, 40 225" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Label -->
+    <rect x="30" y="110" width="40" height="60" fill="#38bdf8"/>
+    <rect x="55" y="110" width="15" height="60" fill="#0284c7" opacity="0.3"/> <!-- Right shading -->
+    <rect x="30" y="110" width="8" height="60" fill="#ffffff" opacity="0.2"/> <!-- Left light -->
+
+    <!-- Cap -->
+    <g transform="translate(0, 0)">
+        <!-- Cap shadow -->
+        <rect x="38" y="22" width="24" height="6" fill="#64748b" opacity="0.5" rx="1"/>
+        <!-- Main cap -->
+        <rect x="37" y="5" width="26" height="18" fill="#1e3a8a" rx="2"/>
+        <rect x="55" y="5" width="8" height="18" fill="#172554" rx="2"/> <!-- Darker right side -->
+        <!-- Ridges -->
+        <line x1="41" y1="5" x2="41" y2="23" stroke="#2563eb" stroke-width="1"/>
+        <line x1="45" y1="5" x2="45" y2="23" stroke="#2563eb" stroke-width="1"/>
+        <line x1="49" y1="5" x2="49" y2="23" stroke="#2563eb" stroke-width="1"/>
+    </g>
+</svg>
